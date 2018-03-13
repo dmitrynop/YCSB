@@ -22,6 +22,8 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.policy.CommitLevel;
+import com.aerospike.client.policy.ConsistencyLevel;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -69,11 +71,25 @@ public class AerospikeClient extends com.yahoo.ycsb.DB {
     int port = Integer.parseInt(props.getProperty("as.port", DEFAULT_PORT));
     int timeout = Integer.parseInt(props.getProperty("as.timeout",
         DEFAULT_TIMEOUT));
+    boolean linearizeRead = props.getProperty("as.linearizeRead", "true").equals("true");
+    String consistencyLevel = props.getProperty("as.consistencyLevel", "CONSISTENCY_ONE"); // or _ALL
+    String commitLevel = props.getProperty("as.commitLevel", "COMMIT_MASTER"); // or _ALL
 
-    readPolicy.timeout = timeout;
-    insertPolicy.timeout = timeout;
-    updatePolicy.timeout = timeout;
-    deletePolicy.timeout = timeout;
+    readPolicy.setTimeout(timeout);
+    insertPolicy.setTimeout(timeout);
+    updatePolicy.setTimeout(timeout);
+    deletePolicy.setTimeout(timeout);
+
+    try {
+      insertPolicy.commitLevel = CommitLevel.valueOf(commitLevel);
+      updatePolicy.commitLevel = CommitLevel.valueOf(commitLevel);
+      deletePolicy.commitLevel = CommitLevel.valueOf(commitLevel);
+      insertPolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
+      updatePolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
+      deletePolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
+    } catch(IllegalArgumentException e) {
+      throw e;
+    }
 
     ClientPolicy clientPolicy = new ClientPolicy();
 
