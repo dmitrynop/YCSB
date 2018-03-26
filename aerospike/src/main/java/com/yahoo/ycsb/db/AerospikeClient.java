@@ -71,19 +71,32 @@ public class AerospikeClient extends com.yahoo.ycsb.DB {
     int port = Integer.parseInt(props.getProperty("as.port", DEFAULT_PORT));
     int timeout = Integer.parseInt(props.getProperty("as.timeout",
         DEFAULT_TIMEOUT));
-    boolean linearizeRead = props.getProperty("as.linearizeRead", "true").equals("true");
-    String consistencyLevel = props.getProperty("as.consistencyLevel", "CONSISTENCY_ONE"); // or _ALL
-    String commitLevel = props.getProperty("as.commitLevel", "COMMIT_MASTER"); // or _ALL
+    boolean linearizeRead = props.getProperty("as.linearizeRead", "false")
+        .equals("true");
+    String consistencyLevel = props.getProperty("as.consistencyLevel",
+        "CONSISTENCY_ONE"); // or _ALL
+    String commitLevel = props.getProperty("as.commitLevel",
+        "COMMIT_MASTER"); // or _ALL
+    int maxRetries = Integer.parseInt(props.getProperty("as.insertMaxRetries", "0"));
 
     readPolicy.setTimeout(timeout);
     insertPolicy.setTimeout(timeout);
     updatePolicy.setTimeout(timeout);
     deletePolicy.setTimeout(timeout);
 
+    insertPolicy.maxRetries = maxRetries;
+    readPolicy.linearizeRead = linearizeRead;
+    updatePolicy.linearizeRead = linearizeRead;
+
     try {
       insertPolicy.commitLevel = CommitLevel.valueOf(commitLevel);
       updatePolicy.commitLevel = CommitLevel.valueOf(commitLevel);
       deletePolicy.commitLevel = CommitLevel.valueOf(commitLevel);
+    } catch(IllegalArgumentException e) {
+      throw e;
+    }
+
+   try {
       insertPolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
       updatePolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
       deletePolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
