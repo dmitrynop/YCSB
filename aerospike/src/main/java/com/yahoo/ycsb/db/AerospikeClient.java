@@ -26,6 +26,7 @@ import com.aerospike.client.policy.CommitLevel;
 import com.aerospike.client.policy.ConsistencyLevel;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
+import com.aerospike.client.policy.TlsPolicy;
 import com.aerospike.client.policy.WritePolicy;
 import com.yahoo.ycsb.ByteArrayByteIterator;
 import com.yahoo.ycsb.ByteIterator;
@@ -78,6 +79,8 @@ public class AerospikeClient extends com.yahoo.ycsb.DB {
     String commitLevel = props.getProperty("as.commitLevel",
         "COMMIT_MASTER"); // or _ALL
     int maxRetries = Integer.parseInt(props.getProperty("as.insertMaxRetries", "0"));
+    boolean tlsEnable = props.getProperty("as.tlsEnable", "false")
+        .equals("true");
 
     readPolicy.setTimeout(timeout);
     insertPolicy.setTimeout(timeout);
@@ -96,7 +99,7 @@ public class AerospikeClient extends com.yahoo.ycsb.DB {
       throw e;
     }
 
-   try {
+    try {
       insertPolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
       updatePolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
       deletePolicy.consistencyLevel = ConsistencyLevel.valueOf(consistencyLevel);
@@ -105,6 +108,10 @@ public class AerospikeClient extends com.yahoo.ycsb.DB {
     }
 
     ClientPolicy clientPolicy = new ClientPolicy();
+    
+    if (tlsEnable) {
+      clientPolicy.tlsPolicy = new TlsPolicy();
+    }
 
     if (user != null && password != null) {
       clientPolicy.user = user;
