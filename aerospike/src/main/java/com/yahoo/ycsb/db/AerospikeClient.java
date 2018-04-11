@@ -19,6 +19,7 @@ package com.yahoo.ycsb.db;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
+import com.aerospike.client.Host;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.ClientPolicy;
@@ -118,9 +119,11 @@ public class AerospikeClient extends com.yahoo.ycsb.DB {
       clientPolicy.password = password;
     }
 
+    Host[] hosts = Host.parseHosts(host, port);
+
     try {
       client =
-          new com.aerospike.client.AerospikeClient(clientPolicy, host, port);
+          new com.aerospike.client.AerospikeClient(clientPolicy, hosts);
     } catch (AerospikeException e) {
       throw new DBException(String.format("Error while creating Aerospike " +
           "client for %s:%d.", host, port), e);
