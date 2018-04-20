@@ -56,3 +56,85 @@ Run the workload test:
 
     ./bin/ycsb run aerospike -s -P workloads/workloada >outputRun.txt
 
+This is patched version and it contains next things.
+
+## Lineate changes
+
+### New arguments
+  * `as.tlsEnable` - TLS (default: `false`)
+  * `as.commitLevel` - AP mode commit level: `COMMIT_MASTER`, or `COMMIT_ALL` (default: `COMMIT_MASTER`)
+  * `as.consistencyLevel` - AP mode commit level: `CONSISTENCY_ONE`, or `CONSISTENCY_ALL` (default: `CONSISTENCY_ONE`)
+  * `as.linearizeRead` - SC mode session consistency (default: false)
+
+### Changes
+  * `timeout` now is socket timeout
+  * client bumped version 4
+
+### Sample run scripts
+
+```SH
+#!/bin/bash
+YCSB="/root/ycsb-aerospike-binding-0.14.0-SNAPSHOT"
+#YCSB="/opt/ycsb"
+REPORTS="/opt/app/_reports"
+YCSB_BIN="${YCSB}/bin/ycsb"
+ 
+WORKLOAD="$(pwd)/workloads/visa_workload_1"
+HOST="sl73ovndbd01:cluster-visa:3000"
+ 
+NAMESPACE=ycsb-ap
+#NAMESPACE=ycsb-mem
+ 
+THREADS=48
+ 
+OUTPUT_NAME=`date '+%Y-%m-%d_%H-%M'_run_`${NAMESPACE}
+mkdir -p "${REPORTS}/${OUTPUT_NAME}"
+OUTPUT="${REPORTS}/${OUTPUT_NAME}"
+cd "$YCSB"
+ 
+JVM_ARGS='' #-Djavax.net.ssl.trustStore=/root/aerospike/keystore.jks' #'-Dcom.aerospike.client.policy.linerizeRead=true'
+ 
+for (( i=0; i < 4; i++ ))
+do
+  nohup ${YCSB_BIN} run aerospike -s -P ${WORKLOAD} \
+  -jvm-args=${JVM_ARGS} \
+  -p as.host=${HOST} -p as.namespace=${NAMESPACE} -p as.timeout=2000 \
+  -p maxexecutiontime=1200 -p as.linearizeRead=false \
+  -p as.tlsEnable=false \
+  -p as.consistencyLevel=CONSISTENCY_ALL -p as.commitLevel=COMMIT_ALL \
+  -p measurementtype=raw -p measurement.raw.output_file=${OUTPUT}/run$i.log \
+  -threads ${THREADS} -target 20000 > ${OUTPUT}/transactions$i.dat &
+done
+```
+
+```SH
+#!/bin/bash
+YCSB="/root/ycsb-aerospike-binding-0.14.0-SNAPSHOT"
+#YCSB="/opt/ycsb"
+REPORTS="/opt/app/_reports"
+YCSB_BIN="${YCSB}/bin/ycsb"
+ 
+WORKLOAD="$(pwd)/workloads/visa_workload_1"
+HOST=sl73ovndbd01.visa.com
+ 
+NAMESPACE=ycsb-sc
+#NAMESPACE=ycsb-mem
+ 
+THREADS=24
+ 
+OUTPUT_NAME=`date '+%Y-%m-%d_%H-%M'_load_`${NAMESPACE}
+mkdir -p "${REPORTS}/${OUTPUT_NAME}"
+OUTPUT="${REPORTS}/${OUTPUT_NAME}"
+cd "$YCSB"
+ 
+# -target - by default maximum
+${YCSB_BIN} load aerospike -s -P ${WORKLOAD} \
+  -p as.host=${HOST} -p as.namespace=${NAMESPACE}\
+  -p as.insertMaxRetries=2 -p as.timeout=12000 \
+  -p as.linearizeRead=false \
+  -jvm-args='-Xms100G -Xmx100G -XX:MaxGCPauseMillis=100 -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=1 -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime -XX:+PrintGCApplicationConcurrentTime -XX:+PrintGCDateStamps -Xloggc:/var/log/ycsb-gc.log' \
+  -threads ${THREADS} > ${OUTPUT}/load.dat
+ 
+ 
+#  -p measurementtype=raw -p measurement.raw.output_file=${OUTPUT}/load.log \
+```
