@@ -79,8 +79,8 @@ YCSB="/root/ycsb-aerospike-binding-0.14.0-SNAPSHOT"
 REPORTS="/opt/app/_reports"
 YCSB_BIN="${YCSB}/bin/ycsb"
  
-WORKLOAD="$(pwd)/workloads/visa_workload_1"
-HOST="sl73ovndbd01:cluster-visa:3000"
+WORKLOAD="$(pwd)/workloads/workload_1"
+HOST="host:cluster:3000"
  
 NAMESPACE=ycsb-ap
 #NAMESPACE=ycsb-mem
@@ -114,8 +114,8 @@ YCSB="/root/ycsb-aerospike-binding-0.14.0-SNAPSHOT"
 REPORTS="/opt/app/_reports"
 YCSB_BIN="${YCSB}/bin/ycsb"
  
-WORKLOAD="$(pwd)/workloads/visa_workload_1"
-HOST=sl73ovndbd01.visa.com
+WORKLOAD="$(pwd)/workloads/workload_1"
+HOST=host
  
 NAMESPACE=ycsb-sc
 #NAMESPACE=ycsb-mem
