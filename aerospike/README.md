@@ -58,7 +58,7 @@ Run the workload test:
 
 This is patched version and it contains next things.
 
-## Lineate changes
+## Changes
 
 ### New arguments
   * `as.tlsEnable` - TLS (default: `false`)
